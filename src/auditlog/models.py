@@ -30,10 +30,18 @@ class LogEntryManager(models.Manager):
         :return: The new log entry or `None` if there were no changes.
         :rtype: LogEntry
         """
+
         changes = kwargs.get('changes', None)
         pk = self._get_pk_value(instance)
 
         if changes is not None:
+            content_type = ContentType.objects.get_for_model(instance)
+
+            # set the relation between session and student model
+            if content_type.model == 'session':
+                student = instance.student
+                kwargs.setdefault('related_object_pk', student.id)
+
             kwargs.setdefault('content_type', ContentType.objects.get_for_model(instance))
             kwargs.setdefault('object_pk', pk)
             kwargs.setdefault('object_repr', smart_text(instance))
@@ -49,9 +57,11 @@ class LogEntryManager(models.Manager):
             # used twice.
             if kwargs.get('action', None) is LogEntry.Action.CREATE:
                 if kwargs.get('object_id', None) is not None and self.filter(content_type=kwargs.get('content_type'), object_id=kwargs.get('object_id')).exists():
-                    self.filter(content_type=kwargs.get('content_type'), object_id=kwargs.get('object_id')).delete()
+                    self.filter(content_type=kwargs.get('content_type'),
+                                object_id=kwargs.get('object_id')).delete()
                 else:
-                    self.filter(content_type=kwargs.get('content_type'), object_pk=kwargs.get('object_pk', '')).delete()
+                    self.filter(content_type=kwargs.get('content_type'),
+                                object_pk=kwargs.get('object_pk', '')).delete()
 
             return self.create(**kwargs)
         return None
@@ -162,14 +172,20 @@ class LogEntry(models.Model):
             (DELETE, _("delete")),
         )
 
-    content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.CASCADE, related_name='+', verbose_name=_("content type"))
+    content_type = models.ForeignKey(
+        'contenttypes.ContentType', on_delete=models.CASCADE, related_name='+', verbose_name=_("content type"))
     object_pk = models.CharField(db_index=True, max_length=255, verbose_name=_("object pk"))
-    object_id = models.BigIntegerField(blank=True, db_index=True, null=True, verbose_name=_("object id"))
+    related_object_pk = models.CharField(
+        db_index=True, max_length=255, verbose_name=_("related pk"))
+    object_id = models.BigIntegerField(blank=True, db_index=True,
+                                       null=True, verbose_name=_("object id"))
     object_repr = models.TextField(verbose_name=_("object representation"))
     action = models.PositiveSmallIntegerField(choices=Action.choices, verbose_name=_("action"))
     changes = models.TextField(blank=True, verbose_name=_("change message"))
-    actor = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL, related_name='+', verbose_name=_("actor"))
-    remote_addr = models.GenericIPAddressField(blank=True, null=True, verbose_name=_("remote address"))
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True,
+                              on_delete=models.SET_NULL, related_name='+', verbose_name=_("actor"))
+    remote_addr = models.GenericIPAddressField(
+        blank=True, null=True, verbose_name=_("remote address"))
     timestamp = models.DateTimeField(auto_now_add=True, verbose_name=_("timestamp"))
     additional_data = JSONField(blank=True, null=True, verbose_name=_("additional data"))
 
