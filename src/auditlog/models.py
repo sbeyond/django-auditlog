@@ -160,7 +160,7 @@ class LogEntry(models.Model):
         in some cases when comparing actions because the ``__lt``, ``__lte``, ``__gt``, ``__gte`` lookup filters can be
         used in queries.
 
-        The valid actions are :py:attr:`Action.CREATE`, :py:attr:`Action.UPDATE` and :py:attr:`Action.DELETE`.
+        The valid actions are :py:attr:``Action.CREATE``, :py:attr:``Action.UPDATE`` and :py:attr:``Action.DELETE``.
         """
         CREATE = 0
         UPDATE = 1
