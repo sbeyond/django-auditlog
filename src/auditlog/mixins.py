@@ -30,8 +30,11 @@ class LogEntryAdminMixin(object):
     def resource_url(self, obj):
         app_label, model = obj.content_type.app_label, obj.content_type.model
         viewname = 'admin:%s_%s_change' % (app_label, model)
+        id = obj.object_id
+        if obj.object_id is None:
+            id = obj.object_pk
         try:
-            link = urlresolvers.reverse(viewname, args=[obj.object_id])
+            link = urlresolvers.reverse(viewname, args=[id])
         except NoReverseMatch:
             return obj.object_repr
         else:
