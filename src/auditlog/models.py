@@ -42,6 +42,11 @@ class LogEntryManager(models.Manager):
                 student = instance.student
                 kwargs.setdefault('related_object_pk', student.id)
 
+            # set the relation between transaction and customer model
+            if content_type.model == 'transaction':
+                customer = instance.customer
+                kwargs.setdefault('related_object_pk', customer.id)
+
             kwargs.setdefault('content_type', ContentType.objects.get_for_model(instance))
             kwargs.setdefault('object_pk', pk)
             kwargs.setdefault('object_repr', smart_text(instance))

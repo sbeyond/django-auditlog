@@ -45,7 +45,11 @@ class CustomerTypeFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() is None:
             return queryset
-        return queryset.filter(object_pk=self.value())
+
+        qs_customer = queryset.filter(object_pk=self.value())
+        qs_session = queryset.filter(related_object_pk=self.value())
+        qs = qs_customer | qs_session
+        return qs
 
 
 class StudentTypeFilter(SimpleListFilter):
