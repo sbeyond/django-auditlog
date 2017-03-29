@@ -47,6 +47,11 @@ class LogEntryManager(models.Manager):
                 customer = instance.customer
                 kwargs.setdefault('related_object_pk', customer.id)
 
+            # set the relation between session allocation and customer model
+            if content_type.model == 'sessionallocation':
+                customer = instance.provider
+                kwargs.setdefault('related_object_pk', customer.id)
+
             kwargs.setdefault('content_type', ContentType.objects.get_for_model(instance))
             kwargs.setdefault('object_pk', pk)
             kwargs.setdefault('object_repr', smart_text(instance))
