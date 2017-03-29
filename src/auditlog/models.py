@@ -45,6 +45,13 @@ class LogEntryManager(models.Manager):
                 kwargs.setdefault('related_content_type',
                                   ContentType.objects.get_for_model(student))
 
+            # set the relation between session and student model
+            if content_type.model == 'testprepplan':
+                student = instance.student
+                kwargs.setdefault('related_object_pk', student.id)
+                kwargs.setdefault('related_content_type',
+                                  ContentType.objects.get_for_model(student))
+
             # set the relation between transaction and customer model
             if content_type.model == 'transaction':
                 customer = instance.customer
