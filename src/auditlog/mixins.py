@@ -28,7 +28,7 @@ class LogEntryAdminMixin(object):
     user_url.short_description = 'User'
 
     def resource_url(self, obj):
-        app_label, model = obj.content_type.app_label, obj.content_type.model
+        app_label, model = obj.content_object._meta.app_label, obj.content_object._meta.model_name
         viewname = 'admin:%s_%s_change' % (app_label, model)
         id = obj.object_id
         if obj.object_id is None:
@@ -41,6 +41,20 @@ class LogEntryAdminMixin(object):
             return u'<a href="%s">%s</a>' % (link, obj.object_repr)
     resource_url.allow_tags = True
     resource_url.short_description = 'Resource'
+
+    def related_resource_url(self, obj):
+        if obj.related_object:
+            app_label, model = obj.related_object._meta.app_label, obj.related_object._meta.model_name
+            viewname = 'admin:%s_%s_change' % (app_label, model)
+            id = obj.related_object_pk
+            try:
+                link = urlresolvers.reverse(viewname, args=[id])
+            except NoReverseMatch:
+                return obj.object_repr
+            else:
+                return u'<a href="%s">%s</a>' % (link, obj.related_object)
+    related_resource_url.allow_tags = True
+    related_resource_url.short_description = 'Related Resource'
 
     def msg_short(self, obj):
         if obj.action == 2:

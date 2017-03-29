@@ -23,8 +23,6 @@ class UserTypeFilter(SimpleListFilter):
     def lookups(self, request, model_admin):
         qs = model_admin.get_queryset(request)
         types = qs.values_list('actor_id', 'actor__username')
-        print 'UserTypeFilter'
-        print types
         return list(types.order_by('actor__username').distinct())
 
     def queryset(self, request, queryset):
@@ -47,8 +45,8 @@ class CustomerTypeFilter(SimpleListFilter):
             return queryset
 
         qs_customer = queryset.filter(object_pk=self.value())
-        qs_session = queryset.filter(related_object_pk=self.value())
-        qs = qs_customer | qs_session
+        qs_related_objects = queryset.filter(related_object_pk=self.value())
+        qs = qs_customer | qs_related_objects
         return qs
 
 
@@ -65,6 +63,6 @@ class StudentTypeFilter(SimpleListFilter):
         if self.value() is None:
             return queryset
         qs_student = queryset.filter(object_pk=self.value())
-        qs_session = queryset.filter(related_object_pk=self.value())
-        qs = qs_student | qs_session
+        qs_related_objects = queryset.filter(related_object_pk=self.value())
+        qs = qs_student | qs_related_objects
         return qs

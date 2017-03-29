@@ -4,6 +4,7 @@ import json
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import QuerySet, Q
@@ -41,16 +42,22 @@ class LogEntryManager(models.Manager):
             if content_type.model == 'session':
                 student = instance.student
                 kwargs.setdefault('related_object_pk', student.id)
+                kwargs.setdefault('related_content_type',
+                                  ContentType.objects.get_for_model(student))
 
             # set the relation between transaction and customer model
             if content_type.model == 'transaction':
                 customer = instance.customer
                 kwargs.setdefault('related_object_pk', customer.id)
+                kwargs.setdefault('related_content_type',
+                                  ContentType.objects.get_for_model(customer))
 
             # set the relation between session allocation and customer model
             if content_type.model == 'sessionallocation':
                 customer = instance.provider
                 kwargs.setdefault('related_object_pk', customer.id)
+                kwargs.setdefault('related_content_type',
+                                  ContentType.objects.get_for_model(customer))
 
             kwargs.setdefault('content_type', ContentType.objects.get_for_model(instance))
             kwargs.setdefault('object_pk', pk)
@@ -187,8 +194,13 @@ class LogEntry(models.Model):
     object_pk = models.CharField(db_index=True, max_length=255, verbose_name=_("object pk"))
     related_object_pk = models.CharField(
         db_index=True, max_length=255, verbose_name=_("related pk"))
+    related_content_type = models.ForeignKey(
+        'contenttypes.ContentType', blank=True, null=True, on_delete=models.CASCADE, related_name='+', verbose_name=_("related content type"))
     object_id = models.BigIntegerField(blank=True, db_index=True,
                                        null=True, verbose_name=_("object id"))
+    content_object = GenericForeignKey('content_type', 'object_pk', "Related Content")
+    related_object = GenericForeignKey(
+        'related_content_type', 'related_object_pk', "Related Content")
     object_repr = models.TextField(verbose_name=_("object representation"))
     action = models.PositiveSmallIntegerField(choices=Action.choices, verbose_name=_("action"))
     changes = models.TextField(blank=True, verbose_name=_("change message"))
