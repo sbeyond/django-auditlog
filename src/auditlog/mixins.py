@@ -28,6 +28,8 @@ class LogEntryAdminMixin(object):
     user_url.short_description = 'User'
 
     def resource_url(self, obj):
+        if obj.action == 2:
+            return ''  # delete
         app_label, model = obj.content_object._meta.app_label, obj.content_object._meta.model_name
         viewname = 'admin:%s_%s_change' % (app_label, model)
         id = obj.object_id
